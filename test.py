@@ -108,7 +108,7 @@ class Agente_tit_for_tat(Agente):
         if len(self.resultados_partida) == 0:
             return C
         else:
-            return self.resultados_partida.lista_jugadas_a1[-1]
+            return self.resultados_partida.lista_jugadas_a2[-1]
 
 
 class Enfrentamiento_iterado:
