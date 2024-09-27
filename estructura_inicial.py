@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from random import random
+import matplotlib.pyplot as plt
 
 class Dilema:
 
@@ -77,6 +78,7 @@ class Resultados_partida:
 
 class Agente(ABC):
     def __init__(self, dilema : Dilema):
+        self.nombre = self.__class__.__name__
         self.dilema = dilema
         self.resultados_partida = Resultados_partida()
 
@@ -86,6 +88,8 @@ class Agente(ABC):
 
     def resetear_resultado(self):
         self.resultados_partida = Resultados_partida()
+
+
 
 
 
@@ -115,12 +119,13 @@ class Tft(Agente):
 
 
 class Partida:
-    def __init__(self, dilema : Dilema, agente_1 : Agente, agente_2 : Agente, n_rondas = 10, probabilidad_de_finalizar = 0):
+    def __init__(self, dilema : Dilema, agente_1 : Agente, agente_2 : Agente, n_rondas = 10, probabilidad_de_finalizar = 0, error = 0.0):
         self.dilema = dilema
         self.agente_1 = agente_1
         self.agente_2 = agente_2
         self.probabilidad_de_finalizar = probabilidad_de_finalizar
         self.resultados_partida = Resultados_partida()
+        self.error = error
 
         if probabilidad_de_finalizar != 0:
             assert 0 < probabilidad_de_finalizar <= 1, "La probabilidad de finalizar debe ser entre 0 y 1"
@@ -142,9 +147,17 @@ class Partida:
 
 
     def simular_partida(self):
+
+        def ajustar_a_error(decision):
+            n_aleatorio = random()
+            if n_aleatorio < self.error:
+                return int(not bool(decision))
+            else:
+                return decision
+
         for i in range(self.n_rondas):
-            decision_a1 = self.agente_1.generar_decision()
-            decision_a2 = self.agente_2.generar_decision()
+            decision_a1 = ajustar_a_error(self.agente_1.generar_decision())
+            decision_a2 = ajustar_a_error(self.agente_2.generar_decision())
 
             tupla_resultado_ronda = self.dilema.evaluate_result(decision_a1, decision_a2)
 
@@ -156,17 +169,83 @@ class Partida:
         self.agente_1.resetear_resultado()
         self.agente_2.resetear_resultado()
 
+class Torneo():
+    def __init__(self, jugadores : [Agente, ...], n_rondas, probabilidad_de_finalizar = 0, error = 0.0, repeticiones = 2, dilema = Dilema(2, -1, 3, 0)):
+        def generar_enfrentamientos():
+
+            lista_enfrentamientos = []
+
+            for i in range(len(jugadores)):
+                for j in range(i + 1, len(jugadores)):
+                    lista_enfrentamientos.append((jugadores[i], jugadores[j]))
+
+            return lista_enfrentamientos
+
+
+        self.jugadores = jugadores
+        self.n_rondas = n_rondas
+        self.probabilidad_de_finalizar = probabilidad_de_finalizar
+        self.error = error
+        self.repeticiones = repeticiones
+        self.enfrentamientos = generar_enfrentamientos()
+        self.dilema = dilema
+        self.ranking = {jugador: 0.0 for jugador in self.jugadores}  # initial vals
+
+    #Modificar para poder hacer graficos bonitos
+
+    def simular_torneo(self):
+        for repeticion in range(self.repeticiones):
+            for agente_1, agente_2 in self.enfrentamientos:
+                partida = Partida(self.dilema, agente_1, agente_2, self.n_rondas, self.probabilidad_de_finalizar, self.error)
+
+                partida.simular_partida()
+
+                self.ranking[agente_1] += partida.resultados_partida.totales[0]
+                self.ranking[agente_2] += partida.resultados_partida.totales[1]
+
+                agente_1.resetear_resultado()
+                agente_2.resetear_resultado()
+
+
+    def ordenar_ranking(self):
+        self.ranking = dict(sorted(self.ranking.items(), key=lambda tup: tup[1], reverse=True))
+
+    def dibujar_ranking(self):
+        self.ordenar_ranking()
+
+        lista_nombres = list(map(lambda agente: agente.nombre, self.ranking.keys()))
+        lista_valores = list(self.ranking.values())
+
+        plt.bar(lista_nombres, lista_valores)
+        plt.show()
+
+class Torneo_evolutivo():
+    pass
+
+
 def main():
     dp = Dilema(2, -1, 3, 0)
+
     colaborador = Cooperator(dp)
+    colaborador_2 = Cooperator(dp)
     defecador = Defecator(dp)
     tft1 = Tft(dp)
     tft2 = Tft(dp)
 
-    partida = Partida(dp, colaborador, defecador, probabilidad_de_finalizar = 0.01)
-    partida.simular_partida()
-    print(partida.resultados_partida)
+    lista_jugaores = [tft1, tft2, colaborador_2, defecador]
+
+    #partida = Partida(dp, colaborador, defecador, probabilidad_de_finalizar = 0.01, error = 0.1)
+    #partida.simular_partida()
+    #print(partida.resultados_partida)
+
+    te_torneo = Torneo(lista_jugaores, 10)
+    te_torneo.simular_torneo()
+    te_torneo.ordenar_ranking()
+    print(te_torneo.ranking)
+    te_torneo.dibujar_ranking()
+
     print()
+
 
 if __name__ == "__main__":
     main()

@@ -79,6 +79,64 @@ class Agente(ABC):
     def guardar_resultado_ronda(self, resultado, decision_a1, decision_a2):
         self.resultados_partida.append(resultado, decision_a1, decision_a2)
 
+class Player(ABC):
+
+    @abstractmethod
+    def __init__(self, dilemma: Dilemma, name: str = ""):
+        """
+        Abstract class that represents a generic player
+
+        Parameters:
+            - name (str): the name of the strategy
+            - dilemma (Dilemma): the dilemma that this player will play
+        """
+
+        self.name = name
+        self.dilemma = dilemma
+
+        self.history  = []  # This is the main variable of this class. It is
+                            # intended to store all the history of actions
+                            # performed by this player.
+                            # Example: [C, C, D, D, D] <- So far, the
+                            # interaction lasts five rounds. In the first one,
+                            # this player cooperated. In the second, he also
+                            # cooperated. In the third, he defected. Etc.
+
+
+    @abstractmethod
+    def strategy(self, opponent: Player) -> int:
+        """
+        Main call of the class. Gives the action for the following round of the
+        interaction, based on the history
+
+        Parameters:
+            - opponent (Player): is another instance of Player.
+
+        Results:
+            - An integer representing Cooperation (C=0) or Defection (D=1)
+        """
+        pass
+
+
+    def compute_scores(self, opponent: Player) -> tuple[float, float]:
+        """
+        Compute the scores for a given opponent
+
+        Parameters:
+            - opponent (Player): is another instance of Player.
+
+        Results:
+            - A tuple of two floats, where the first value is the current
+            player's payoff, and the second value is the opponent's payoff.
+        """
+        raise NotImplementedError
+
+
+    # Este método ya está implementado
+    def clean_history(self):
+        """Resets the history of the current player"""
+        self.history = []
+
 class Agente_random(Agente):
     def __init__(self):
         super().__init__()
@@ -112,11 +170,10 @@ class Agente_tit_for_tat(Agente):
 
 
 class Enfrentamiento_iterado:
-    def __init__(self, a1 : Agente, a2 : Agente, iteraciones = 10, error = 0.0):
+    def __init__(self, a1 : Agente, a2 : Agente, iteraciones = 10):
         self.iteraciones = iteraciones
         self.a1 = a1
         self.a2 = a2
-        self.error = error
 
         self.payoff_matrix = [[(2, 2), (-1, 3)],
                               [(3, -1), (0, 0)]]
@@ -127,11 +184,8 @@ class Enfrentamiento_iterado:
         a2.local = False
 
     def simular_ronda(self):
-
         decision_a1 = self.a1.generar_decision()
         decision_a2 = self.a2.generar_decision()
-
-
 
         resultado_ronda = self.payoff_matrix[decision_a1][decision_a2]
 
