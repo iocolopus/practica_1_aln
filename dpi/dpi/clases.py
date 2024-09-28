@@ -3,6 +3,7 @@ from random import random
 import matplotlib.pyplot as plt
 import copy
 import math
+from random import randrange
 
 class Dilema:
 
@@ -87,7 +88,7 @@ class Cooperator(Agente):
     def generar_decision(self):
         return 0
 
-class Defecator(Agente):
+class Defector(Agente):
     def __init__(self, dilema: Dilema):
         super().__init__(dilema)
 
@@ -103,6 +104,13 @@ class Tft(Agente):
             return 0
         else:
             return self.resultados_partida.lista_jugadas_a2[-1]
+
+class Agente_random(Agente):
+    def __init__(self, dilema: Dilema):
+        super().__init__(dilema)
+
+    def generar_decision(self):
+        return bool(randrange(0,2))
 
 class Partida:
     def __init__(self, dilema : Dilema, agente_1 : Agente, agente_2 : Agente, n_rondas = 10, probabilidad_de_finalizar = 0, error = 0.0):
@@ -299,7 +307,7 @@ class Torneo_evolutivo:
 
             self.poblacion.actualizar_historial_contadores()
 
-            self.poblacion.gestionar_evolucion(self.repeticiones)
+            self.poblacion.gestionar_evolucion(self.repr_int)
 
 
     def dibujar_resultados(self):
