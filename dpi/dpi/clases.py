@@ -110,7 +110,7 @@ class Agente_random(Agente):
         super().__init__(dilema)
 
     def generar_decision(self):
-        return bool(randrange(0,2))
+        return randrange(0,2)
 
 class Partida:
     def __init__(self, dilema : Dilema, agente_1 : Agente, agente_2 : Agente, n_rondas = 10, probabilidad_de_finalizar = 0, error = 0.0):
