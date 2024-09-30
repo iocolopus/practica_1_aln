@@ -223,13 +223,13 @@ class Detective(Agente):
         self.tft = Tft(dilema)
 
     def generar_decision(self):
-        if len(self.resultados_partida) == 0:
+        if len(self.resultados_partida.lista_dic) == 0:
             return 0
-        elif len(self.resultados_partida) == 1:
+        elif len(self.resultados_partida.lista_dic) == 1:
             return 1
-        elif len(self.resultados_partida) == 2:
+        elif len(self.resultados_partida.lista_dic) == 2:
             return 0
-        elif len(self.resultados_partida) == 3:
+        elif len(self.resultados_partida.lista_dic) == 3:
             return 0
         
         else:
@@ -438,7 +438,7 @@ class Poblacion:
 
     def eliminar_n_peores(self, n):
         """
-        Elimina a los 'n' agentesD con las puntuaciones más bajas de la población.
+        Elimina a los 'n' agentes con las puntuaciones más bajas de la población.
         
         Parámetros:
             n (int): Número de agentes a eliminar.
